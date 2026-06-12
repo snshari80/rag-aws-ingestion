@@ -1,0 +1,20 @@
+{
+  "QueueConfigurations": [
+    {
+      "QueueArn": "arn:aws:sqs:us-east-1:178371640254:rag-ingestion-queue",
+      "Events": [
+        "s3:ObjectCreated:*"
+      ],
+      "Filter": {
+        "Key": {
+          "FilterRules": [
+            {
+              "Name": "prefix",
+              "Value": "documents/"
+            }
+          ]
+        }
+      }
+    }
+  ]
+}
