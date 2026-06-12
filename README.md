@@ -266,7 +266,7 @@ For issues, questions, or contributions:
 
 ## Author
 
-**Siva Hari**  
+**Hari Nagarajan S**  
 GitHub: [@snshari80](https://github.com/snshari80)
 
 ---
