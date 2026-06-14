@@ -1,0 +1,96 @@
+# docker-compose.yml
+# -------------------
+# Local testing stack — mirrors the ECS Fargate setup without any AWS charges.
+#
+# Services:
+#   localstack  — emulates SQS locally (free, no AWS account needed for queue testing)
+#   worker      — the ingestion worker container (same image that goes to ECS)
+#
+# Usage:
+#   docker-compose up --build
+#   docker-compose down
+#
+# Note: Even in local mode, Bedrock and OpenSearch calls go to REAL AWS.
+# Only SQS is emulated locally. This is intentional — Bedrock and OpenSearch
+# don't have good local emulators that match production behaviour.
+
+version: "3.9"
+
+services:
+
+  # ── LocalStack: emulates AWS SQS locally ─────────────────────────────────
+  localstack:
+    image: localstack/localstack:latest
+    ports:
+      - "4566:4566"       # LocalStack unified endpoint
+    environment:
+      - SERVICES=sqs      # Only emulate SQS (keeps startup fast)
+      - DEFAULT_REGION=us-east-1
+      - DEBUG=0
+    volumes:
+      - localstack_data:/var/lib/localstack
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:4566/_localstack/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ── SQS queue initialiser — runs once, creates queues in LocalStack ───────
+  sqs-init:
+    image: amazon/aws-cli:latest
+    depends_on:
+      localstack:
+        condition: service_healthy
+    environment:
+      - AWS_ACCESS_KEY_ID=test
+      - AWS_SECRET_ACCESS_KEY=test
+      - AWS_DEFAULT_REGION=us-east-1
+    entrypoint: >
+      /bin/sh -c "
+        aws --endpoint-url=http://localstack:4566 sqs create-queue --queue-name rag-ingestion-dlq &&
+        aws --endpoint-url=http://localstack:4566 sqs create-queue --queue-name rag-ingestion-queue \
+          --attributes VisibilityTimeout=600 &&
+        echo 'Queues created in LocalStack'
+      "
+
+  # ── Ingestion worker ──────────────────────────────────────────────────────
+  worker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    depends_on:
+      sqs-init:
+        condition: service_completed_successfully
+    env_file:
+      - .env.local           # Use .env.local for local testing (see below)
+    environment:
+      # Override SQS URL to point at LocalStack
+      - SQS_QUEUE_URL=http://localstack:4566/000000000000/rag-ingestion-queue
+      - AWS_ENDPOINT_URL_SQS=http://localstack:4566   # boto3 respects this
+    volumes:
+      # Mount source files for hot-reload during development
+      - ./sqs_worker.py:/app/sqs_worker.py
+      - ./ingestion_pipeline.py:/app/ingestion_pipeline.py
+      - ./config.py:/app/config.py
+    restart: unless-stopped
+
+volumes:
+  localstack_data:
+
+# ── .env.local template ──────────────────────────────────────────────────────
+# Create a .env.local file with these values for local docker-compose testing:
+#
+# AWS_REGION=us-east-1
+# S3_BUCKET_NAME=your-real-s3-bucket
+# OPENSEARCH_HOST=https://your-real-domain.us-east-1.es.amazonaws.com
+# OPENSEARCH_INDEX_NAME=rag-vector-index
+# OPENSEARCH_USERNAME=admin
+# OPENSEARCH_PASSWORD=your-password
+# USE_AWS_OPENSEARCH=false
+# BEDROCK_REGION=us-east-1
+# WORKER_CONCURRENCY=1
+#
+# Note: AWS credentials for S3/Bedrock/OpenSearch come from ~/.aws/credentials
+# mounted automatically by Docker on most setups. Or add them explicitly:
+# AWS_ACCESS_KEY_ID=your-key
+# AWS_SECRET_ACCESS_KEY=your-secret
