@@ -23,16 +23,6 @@ logging.basicConfig(
 
 logger = logging.getLogger(__name__)
 
-# simple_msg = {
-#   'MessageId': '5451f93e-f8ce-4b9d-837a-4dcf970a56eb',
-#   'ReceiptHandle': 'AQEB6HiUrrA2uLs2Kr2oS6EyROj//7W3pMuPFtZVqROvaXxAet18osBpJT7tO+yMX4Ryo5MQ542+anBd0lqdltHiZ1AetE2OQ9VyUQ+tr75mzPdMxN1Z9EvIP9g1idAmtYjOjPgcbazfYfsuMEHA80Qd6AGup/JUvtSxW8qWHfSio0s8iUT1VSGMq94k7ttKGH1mGQzhaHMP/ve9aIKILEb6JfAS8pk1+jf7Bt9wxaeWD2njriyr5CkdW8ViK8a2wrLbHSMy+oaazoHB3ALzUOPphaEOlgJuzIxp+WtVDHy2rAecqbKg2RMhtd/4v3lpWP2HK970TjROX06VTsdJmtS+96W2aZEBMqordwQQuU6PX2S2ucIdvPaKh6M/YCPnl3JghGEnF8z6j1L5rZ1KRsCSFA==',
-#   'MD5OfBody': 'b2eaa4150f6c987fe69b07592a2b9dc7',
-#   'Body': '{"Records":[{"eventVersion":"2.1","eventSource":"aws:s3","awsRegion":"us-east-1","eventTime":"2026-06-03T00:16:47.207Z","eventName":"ObjectCreated:Put","userIdentity":{"principalId":"AWS:AIDASTB6HHO7JYMZXFA3P"},"requestParameters":{"sourceIPAddress":"27.4.159.210"},"responseElements":{"x-amz-request-id":"EHM3TCABJWEYXWFK","x-amz-id-2":"nrMDuNi5qAg/MYfSeIxccN22ueEPdSgUy+tqYd2z2/tarznNrLIcl04Ry8ozI7kPNCO7Ampr2mwhIGCX0TtdlIFTH58Ispjn"},"s3":{"s3SchemaVersion":"1.0","configurationId":"MzFkNzkzYWUtMzdkOS00NjIyLWJhY2EtMjI4NGM3M2VlMDhl","bucket":{"name":"rag-documents-bucket-hari73","ownerIdentity":{"principalId":"A5L9TSSW23NST"},"arn":"arn:aws:s3:::rag-documents-bucket-hari73"},"object":{"key":"documents/science_chapter3.docx","size":1253353,"eTag":"79b04463c0b116a16d6193a79b24459a","sequencer":"006A1F726F211841CE"}}}]}',
-#   'Attributes': {
-#     'ApproximateReceiveCount': '1'
-#   }
-# }
-
 class SQSWorker:
     def __init__(self):
         if not SQS_QUEUE_URL:
@@ -74,14 +64,13 @@ class SQSWorker:
         response = self.sqs.receive_message(
             QueueUrl= SQS_QUEUE_URL,
             MaxNumberOfMessages = SQS_BATCH_SIZE,
-            WaitTimeSeconds     = SQS_WAIT_SECONDS,   # Long-polling
+            WaitTimeSeconds     = SQS_WAIT_SECONDS,
             VisibilityTimeout   = SQS_VISIBILITY_TIMEOUT,
             AttributeNames      = ["ApproximateReceiveCount"],
         )
         return response.get("Messages", [])
 
     def _handle_message(self,message:dict):
-        receipt_handle = message["ReceiptHandle"]
         message_id = message.get("MessageId", "Unknown")
         receive_count = message.get("Attributes",{}).get("ApproximateReceiveCount" , 1)
 
