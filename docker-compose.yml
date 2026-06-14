@@ -76,21 +76,3 @@ services:
 
 volumes:
   localstack_data:
-
-# ── .env.local template ──────────────────────────────────────────────────────
-# Create a .env.local file with these values for local docker-compose testing:
-#
-# AWS_REGION=us-east-1
-# S3_BUCKET_NAME=your-real-s3-bucket
-# OPENSEARCH_HOST=https://your-real-domain.us-east-1.es.amazonaws.com
-# OPENSEARCH_INDEX_NAME=rag-vector-index
-# OPENSEARCH_USERNAME=admin
-# OPENSEARCH_PASSWORD=your-password
-# USE_AWS_OPENSEARCH=false
-# BEDROCK_REGION=us-east-1
-# WORKER_CONCURRENCY=1
-#
-# Note: AWS credentials for S3/Bedrock/OpenSearch come from ~/.aws/credentials
-# mounted automatically by Docker on most setups. Or add them explicitly:
-# AWS_ACCESS_KEY_ID=your-key
-# AWS_SECRET_ACCESS_KEY=your-secret
