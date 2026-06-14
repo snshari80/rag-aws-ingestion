@@ -5,8 +5,8 @@
 # Run:     docker run --env-file .env rag-ingestion-worker
 # ─────────────────────────────────────────────────────────────────────────────
 
-# Slim Python 3.11 base — smaller image, faster ECR push
-FROM python:3.11-slim
+# Slim Python 3.13 base — smaller image, faster ECR push
+FROM python:3.13-slim
 
 # Set working directory inside container
 WORKDIR /app
@@ -14,7 +14,10 @@ WORKDIR /app
 # ── System dependencies ───────────────────────────────────────────────────────
 # python-docx and pptx need libxml2. PyPDF2 needs nothing extra.
 # lxml (used by BeautifulSoup) needs libxml2-dev at build time.
+# Build tools needed for compiling any native dependencies.
 RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    gcc \
     libxml2-dev \
     libxslt-dev \
     && apt-get clean \
