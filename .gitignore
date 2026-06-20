@@ -1,9 +1,6 @@
-# Environment Variables
 .env
-.env.local
-.env.*.local
-
-# Python Virtual Environment
+.env.*
+!.env.example
 venv/
 env/
 ENV/
@@ -11,65 +8,35 @@ Include/
 Lib/
 Scripts/
 pyvenv.cfg
-*.egg-info/
-dist/
-build/
-
-# Python Cache
 __pycache__/
 *.py[cod]
-*$py.class
 *.so
-.Python
-
-# IDE & Editor
-.vscode/
-.idea/
-*.swp
-*.swo
-*~
-.DS_Store
-Thumbs.db
-*.sublime-project
-*.sublime-workspace
-
-# Testing & Coverage
+*.egg-info/
+build/
+dist/
 .pytest_cache/
 .coverage
 htmlcov/
 .mypy_cache/
-.dmypy.json
-dmypy.json
-
-# pip
-pip-log.txt
-pip-delete-this-directory.txt
-
-# Jupyter
-.ipynb_checkpoints/
-*.ipynb
-
-# OS Specific
-.DS_Store
-Thumbs.db
 *.log
-
-# AWS Credentials (NEVER commit these!)
+logs/
+temp/
+tmp/
+downloads/
+uploads/
+*.tmp
+*.local
+config.local.py
+secrets.py
 .aws/
 *.pem
 *.key
-
-# Local development
-*.local
-local_*.py
-temp/
-tmp/
-
-# Backup files
-*.bak
-*.backup
-*~
-
-# Any config files with credentials
-config.local.py
-secrets.py
+.ipynb_checkpoints/
+*.ipynb
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+pip-log.txt
+pip-delete-this-directory.txt
+notification.json

@@ -1,10 +1,9 @@
-import logging
-import sys
+from app.core.logger import logger
 import boto3
 import json
 import time
 import urllib.parse
-from config import (
+from app.core.config import (
     SQS_QUEUE_URL,
     SQS_BATCH_SIZE,
     SQS_WAIT_SECONDS,
@@ -12,16 +11,8 @@ from config import (
     WORKER_CONCURRENCY,
     AWS_REGION,
 )
-from ingestion_pipeline import IngestionPipline
+from app.pipeline.ingestion_pipeline import IngestionPipline
 import threading
- 
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s | %(levelname)s | %(name)s | %(message)s",
-    stream=sys.stdout,
-)
- 
-logger = logging.getLogger(__name__)
  
 class SQSWorker:
     def __init__(self):

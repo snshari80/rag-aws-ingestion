@@ -1,10 +1,8 @@
 import boto3
-from config import (BEDROCK_REGION,BEDROCK_EMBEDDING_MODEL_ID,MAX_CHARS_PER_CALL, EMBEDDING_DIMENSIONS, MAX_RETRIES, RETRY_BACKOFF_SECONDS)
-import logging
+from app.core.config import (BEDROCK_REGION,BEDROCK_EMBEDDING_MODEL_ID,MAX_CHARS_PER_CALL, EMBEDDING_DIMENSIONS, MAX_RETRIES, RETRY_BACKOFF_SECONDS)
+from app.core.logger import logger
 import json
 import time
-
-logger = logging.getLogger(__name__)
 
 class BedRockEmbeddings:
 

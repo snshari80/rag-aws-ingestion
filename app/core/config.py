@@ -43,4 +43,4 @@ MAX_RETRIES = 3
 RETRY_BACKOFF_SECONDS = 2
 
 # Supported File Types
-SUPPORTED_EXTENSIONS = {".pdf", ".docx", ".html", ".htm", ".pptx", ".ppt"}
+SUPPORTED_EXTENSIONS = {".pdf", ".docx", ".html"}

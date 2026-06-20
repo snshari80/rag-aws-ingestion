@@ -1,16 +1,11 @@
 from pathlib import Path
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_community.document_loaders import ( PyMuPDFLoader, Docx2txtLoader )
-import logging
-from config import SUPPORTED_EXTENSIONS
+from app.core.logger import logger
+from app.core.config import SUPPORTED_EXTENSIONS
 import re
-
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s | %(levelname)s | %(message)s"
-)
-logger = logging.getLogger(__name__)
-
+from app.utils.util import (read_file_from_path)
+from bs4 import BeautifulSoup
 
 class DocumentParser:
     def __init__(self):
@@ -43,9 +38,28 @@ class DocumentParser:
             return self._extract_docx(tmp_path)
         elif ext.lstrip(".") == "pdf":
             return self._extract_pdf(tmp_path)
+        elif ext.lstrip(".") == "html":
+            return self._extract_html(tmp_path)
         else:
             raise ValueError("No extractor for this ext:{file_ext}")
-    
+        
+    def _extract_html(self,tmp_path:str):
+        logger.info(f"Documentx Extraction started:{tmp_path}")
+        try:
+            file_bytes = read_file_from_path(tmp_path=tmp_path)
+            html_str = file_bytes.decode("utf-8",errors="replace")
+            soup = BeautifulSoup(html_str,"html.parser")
+            
+            text = soup.get_text(
+                separator="\n",
+                strip=True
+            )
+            return text
+        
+        except Exception as e:
+            logger.error(f"DOCX extraction failed:{e}")
+            return ""
+
     def _extract_docx(self,tmp_path:str):
         logger.info(f"Documentx Extraction started:{tmp_path}")
         try:
@@ -74,4 +88,3 @@ class DocumentParser:
         text = re.sub(r"\n+","\n" ,text)
         text = re.sub(r"\t+", " ",text)
         return text.strip()
-    

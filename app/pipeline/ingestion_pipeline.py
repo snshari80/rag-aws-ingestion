@@ -1,21 +1,14 @@
 import boto3
 from pathlib import Path
-import logging
+from app.core.logger import logger
 import tempfile
 import os
 import hashlib
 
-from config import SUPPORTED_EXTENSIONS
-from document_parse import DocumentParser
-from embeddings import BedRockEmbeddings
-from opensearch import OpenSearchVectorClient
-
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s | %(levelname)s | %(message)s"
-)
-logger = logging.getLogger(__name__)
-
+from app.core.config import SUPPORTED_EXTENSIONS
+from app.parsers.document_parse import DocumentParser
+from app.embeddings.embeddings import BedRockEmbeddings
+from app.clients.opensearch import OpenSearchVectorClient
 
 class IngestionPipline:
     def __init__(self):

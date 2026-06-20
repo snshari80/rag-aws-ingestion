@@ -1,8 +1,9 @@
-import logging
+import argparse
+from app.core.logger import logger
 from datetime import datetime, timezone
 import boto3
 from opensearchpy import OpenSearch, RequestsHttpConnection, AWSV4SignerAuth
-from config import (
+from app.core.config import (
     OPENSEARCH_HOST,
     OPENSEARCH_INDEX_NAME,
     OPENSEARCH_USERNAME,
@@ -11,8 +12,6 @@ from config import (
     EMBEDDING_DIMENSIONS,
     AWS_REGION,
 )
-
-logger = logging.getLogger(__name__)
 
 class OpenSearchVectorClient:
     def __init__(self):
@@ -198,4 +197,55 @@ class OpenSearchVectorClient:
                 "ingested_at":src.get("ingested_at",""),
             })
         return results
+    
+    def _list_documents(self):
+        query = {
+            "size" : 0,
+            "aggs":{
+                "unique_dcos":{
+                    "terms":{
+                        "field":"source_key",
+                        "size":100,
+                    }
+                }
+            }
+        }
+        try:
+            response = self.client.search(index=self.index_name, body=query)
+            buckets = response["aggregations"]["unique_dcos"]["buckets"]
+
+            if not buckets:
+                print(f"No Buckets in index -> {self.index_name}")
+            
+            print(f"\n{'*'*60}")
+            print(f"Unique Documents")
+            print(f"Total available Documents: {len(buckets)}")
+            for b in buckets:
+                print(f"\n{b["key"]}")
+            print(f"\n{'-'*60}")
+           
+
+        except Exception as e:
+            logger.error(f"Error fetching list document -> {e}")
+            print('error')
+    
+    def run(self):
+        print("Running worker")
+
+
+worker = OpenSearchVectorClient()
+
+if __name__=="__main__":
+    parser = argparse.ArgumentParser(description="OpenSearch List Documents")
+    parser.add_argument(
+        "--list_docs",
+        action="store_true",
+        help="List all documents currently stored in the index",
+    )
+    args = parser.parse_args()
+
+    if args.list_docs:
+        worker._list_documents()
+    else:
+        worker.run()
 

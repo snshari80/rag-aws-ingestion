@@ -30,15 +30,8 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 # ── Application code ──────────────────────────────────────────────────────────
 # Copy all Python source files
-COPY config.py .
-COPY document_parse.py .
-COPY embeddings.py .
-COPY opensearch.py .
-COPY ingestion_pipeline.py .
-COPY sqs_worker.py .
-# COPY test_search.py .
-# COPY test_bedrock_llm.py .
-# COPY test_api.py .
+COPY app/ app/ 
+COPY main.py .
 
 # ── /tmp space ────────────────────────────────────────────────────────────────
 # ECS Fargate ephemeral storage is configurable (20 GB default, up to 200 GB).
@@ -51,4 +44,4 @@ USER appuser
 
 # ── Entry point ───────────────────────────────────────────────────────────────
 # ECS will run this command when the container starts.
-CMD ["python", "sqs_worker.py"]
+CMD ["python", "main.py"]
