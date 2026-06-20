@@ -58,7 +58,7 @@ class IngestionPipline:
             else:
                 logger.info("  Document is NEW — first-time ingestion")
 
-            chunks = self.parser.parse(tmp_path, file_size, last_modified)
+            chunks = self.parser.parse(tmp_path)
 
             if chunks and doc_hash:
                 logger.info(f"Document Extracted & Chunk's avaliable -> Chunk Size:{len(chunks)} -> Path:{tmp_path} ")

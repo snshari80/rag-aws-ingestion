@@ -1,12 +1,16 @@
 import os
 from dotenv import load_dotenv
+from pathlib import Path
 
-load_dotenv()
+if Path(".env.docker").exists():
+    load_dotenv(".env.docker")
+elif Path(".env").exists():
+    load_dotenv(".env")
 
 # AWS Configuration
-AWS_REGION = os.getenv("AWS_REGION", "us-east-1")
+AWS_REGION = os.getenv("AWS_REGION")
 S3_BUCKET_NAME = os.getenv("S3_BUCKET_NAME")
-S3_PREFIX_FILTER = os.getenv("S3_PREFIX_FILTER", "documents/")
+S3_PREFIX_FILTER = os.getenv("S3_PREFIX_FILTER")
 
 # SQS Configuration
 MAIN_QUEUE_NAME = "rag-ingestion-queue"
@@ -20,16 +24,17 @@ SQS_WAIT_SECONDS = int(os.getenv("SQS_WAIT_SECONDS", "20"))
 
 # OpenSearch Configuration
 OPENSEARCH_HOST = os.getenv("OPENSEARCH_HOST")
-OPENSEARCH_INDEX_NAME = os.getenv("OPENSEARCH_INDEX_NAME", "rag-vector-index")
+OPENSEARCH_INDEX_NAME = os.getenv("OPENSEARCH_INDEX_NAME")
 OPENSEARCH_USERNAME = os.getenv("OPENSEARCH_USERNAME")
 OPENSEARCH_PASSWORD = os.getenv("OPENSEARCH_PASSWORD")
 USE_AWS_OPENSEARCH = os.getenv("USE_AWS_OPENSEARCH", "False").lower() == "true"
 
 # Bedrock Configuration
-BEDROCK_REGION = os.getenv("BEDROCK_REGION", "us-east-1")
-BEDROCK_EMBEDDING_MODEL_ID = "amazon.titan-embed-text-v2:0"
-EMBEDDING_DIMENSIONS = 1536
-BEDROCK_LLM_MODEL_ID = "anthropic.claude-3-sonnet-20240229-v1:0"
+BEDROCK_REGION = os.getenv("BEDROCK_REGION")
+BEDROCK_EMBEDDING_MODEL_ID = os.getenv("BEDROCK_EMBEDDING_MODEL_ID")
+EMBEDDING_DIMENSIONS = 1024
+BEDROCK_LLM_MODEL_ID = os.getenv("BEDROCK_LLM_MODEL_ID")
+BEDROCK_AWS_PROFILE = os.getenv("BEDROCK_AWS_PROFILE")
 
 # Worker Configuration
 WORKER_CONCURRENCY = int(os.getenv("WORKER_CONCURRENCY", "1"))

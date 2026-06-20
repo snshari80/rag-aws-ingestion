@@ -1,4 +1,3 @@
-import io
 from pathlib import Path
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_community.document_loaders import ( PyMuPDFLoader, Docx2txtLoader )
@@ -22,7 +21,7 @@ class DocumentParser:
         )
         logger.info(f"Step[2/4] Chunking the temp file")
     
-    def parse(self,tmp_path:str, file_size:str, last_modified:str)->list[str]:
+    def parse(self,tmp_path:str)->list[str]:
         ext = Path(tmp_path).suffix.lower()
         if ext not in SUPPORTED_EXTENSIONS:
             logger.error(f"Unsupported File extension:{ext}")
@@ -32,7 +31,8 @@ class DocumentParser:
         raw_text = self._extract_text(tmp_path,ext)
         
         if not raw_text:
-            logger.error(f"Could be able to chunk the docment{tmp_path}")
+            logger.error(f"Could not extract text from document: {tmp_path}")
+            return []
 
         chunks = self.text_spliter.split_text(raw_text)
         return chunks
@@ -41,6 +41,8 @@ class DocumentParser:
     def _extract_text(self,tmp_path:str, ext:str):
         if ext.lstrip(".") == "docx":
             return self._extract_docx(tmp_path)
+        elif ext.lstrip(".") == "pdf":
+            return self._extract_pdf(tmp_path)
         else:
             raise ValueError("No extractor for this ext:{file_ext}")
     
@@ -54,8 +56,22 @@ class DocumentParser:
             return final_text
         except Exception as e:
             logger.error(f"DOCX extraction failed:{e}")
+            return ""
+
+    def _extract_pdf(self,tmp_path:str):
+        logger.info(f"Document Extraction Started:{tmp_path}")
+        try:
+            loader = PyMuPDFLoader(tmp_path)
+            docs = loader.load()
+            text = "\n\n".join(doc.page_content for doc in docs)
+            final_text = self._clean_text(text)
+            return final_text
+        except Exception as e:
+            logger.error(f"PDF extraction failed:{e}")
+            return ""
 
     def _clean_text(self,text:str):
         text = re.sub(r"\n+","\n" ,text)
         text = re.sub(r"\t+", " ",text)
         return text.strip()
+    

@@ -104,7 +104,7 @@ class OpenSearchVectorClient:
             doc_id = f"{meta_data['source_key']}::chunk_{idx}"
 
             doc = {
-                "embeddings" : vector,
+                "embedding" : vector,
                 "content" : chunk_text,
                 "source_bucket": meta_data.get("source_bucket", ""),
                 "source_key":    meta_data.get("source_key", ""),
@@ -164,3 +164,38 @@ class OpenSearchVectorClient:
             deleted = response.get("deleted",0)
             logger.info(f"Document Deleted :{deleted}")
             return deleted
+        
+    def search(self, 
+        query_vector:list,
+        top_k:int =5,
+        filter_file_type:str |None = None
+        )->list:
+        knn_query = {
+            "vector": query_vector,
+            "k":top_k
+        }
+        query_body = {
+            "size":top_k,
+            "query":{"knn" : {"embedding" : knn_query}},
+            "_source":{"exclude" : ["embedding"]}
+        }
+        response = self.client.search(index=self.index_name,body=query_body)
+
+        hits = response["hits"]["hits"]
+
+        results = []
+        for hit in hits:
+            src = hit["_source"]
+            results.append({
+                "content": src.get("content",""),
+                "score":hit["_score"],
+                "file_name": src.get("file_name",""),
+                "source_key": src.get("source_key", ""),
+                "file_type" : src.get("file_type",""),
+                "chunk_index": src.get("chunk_index",0),
+                "total_chunks":src.get("total_chunks",""),
+                "document_hash":src.get("document_hash",""),
+                "ingested_at":src.get("ingested_at",""),
+            })
+        return results
+
