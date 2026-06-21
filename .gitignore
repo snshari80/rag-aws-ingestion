@@ -6,7 +6,6 @@ env/
 ENV/
 Include/
 Lib/
-Scripts/
 pyvenv.cfg
 __pycache__/
 *.py[cod]
@@ -40,3 +39,5 @@ Thumbs.db
 pip-log.txt
 pip-delete-this-directory.txt
 notification.json
+Scripts/
+!app/Scripts
