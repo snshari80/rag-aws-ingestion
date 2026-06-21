@@ -1,4 +1,7 @@
 from app.worker.sqs_worker import SQSWorker
+from dotenv import load_dotenv
+load_dotenv()
+
 from app.core.config import (SQS_QUEUE_URL, SQS_DLQ_URL)
 from app.core.logger import logger
 

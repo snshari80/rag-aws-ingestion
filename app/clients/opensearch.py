@@ -232,9 +232,6 @@ class OpenSearchVectorClient:
     def run(self):
         print("Running worker")
 
-
-worker = OpenSearchVectorClient()
-
 if __name__=="__main__":
     parser = argparse.ArgumentParser(description="OpenSearch List Documents")
     parser.add_argument(
@@ -243,9 +240,10 @@ if __name__=="__main__":
         help="List all documents currently stored in the index",
     )
     args = parser.parse_args()
-
+    worker = OpenSearchVectorClient()
     if args.list_docs:
         worker._list_documents()
     else:
+
         worker.run()
 
