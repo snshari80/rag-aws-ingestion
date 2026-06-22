@@ -1,196 +1,67 @@
 🧠 RAG AWS Ingestion Pipeline
 
+RAG AWS Ingestion Pipeline
 A serverless Retrieval-Augmented Generation (RAG) ingestion pipeline built on AWS.
-
 This project ingests documents (PDFs, images, etc.), transforms them into structured text, generates embeddings, and stores them in a vector database (OpenSearch) for downstream LLM applications.
 
-----------------------------------------------------------------------------------------------------------------------------------------------
+Repository:
+https://github.com/snshari80/rag-aws-ingestion
 
-🚀 Features
-📂 Document ingestion from S3
-🔄 Automated ETL pipeline (Extract → Transform → Embed)
-🧠 Embedding generation using Amazon Bedrock
-🔍 Vector storage using OpenSearch
-⚡ Serverless orchestration using Step Functions + Lambda
-🔐 Secure access with Cognito / IAM
-📡 Real-time ingestion status via AppSync (optional)
+Overview:
+This project implements a serverless Retrieval-Augmented Generation (RAG) ingestion pipeline on AWS. It ingests documents, processes them, generates embeddings, and stores them in a vector database for downstream LLM applications.
 
-----------------------------------------------------------------------------------------------------------------------------------------------
+Features:
+- Document ingestion from S3
+- ETL pipeline (Extract, Transform, Embed)
+- Embedding generation using Amazon Bedrock
+- Vector storage using OpenSearch
+- Serverless orchestration with Step Functions and Lambda
+- Secure access via IAM/Cognito
 
-🏗️ Architecture Overview
-        Upload File
-             ↓
-        S3 (Input Bucket)
-             ↓
-     Step Functions Workflow
-             ↓
-   ┌───────────────┬────────────────┬────────────────┐
-   ↓               ↓                ↓
-Validation     Transformation     Embedding
-(Lambda)        (Lambda)          (Lambda)
-   ↓               ↓                ↓
-   └──────────→ Processed S3 ←─────┘
-                        ↓
-                 Chunk + Embed
-                        ↓
-                OpenSearch (Vector DB)
+Architecture Flow:
+Upload File → S3 → Step Functions → Validation Lambda → Transformation Lambda → Embedding Lambda → OpenSearch
 
-----------------------------------------------------------------------------------------------------------------------------------------------
+How It Works:
+1. Files are uploaded to S3
+2. Validation Lambda checks file type
+3. Transformation extracts text
+4. Chunking and embedding is performed
+5. Data is stored in OpenSearch
 
-⚙️ How It Works
-1. 📥 Ingestion
-Files uploaded to S3 trigger the pipeline
-Supported formats:
-PDFs
-Images (JPG, PNG, SVG)
+Project Structure:
+- modules/: Terraform modules
+- resources/: AI resources
+- examples/: Sample usage
+- tests/: Test cases
+- main.tf: Entry Terraform config
 
-2. ✅ Validation
-Lambda validates file type & existence
-Rejects unsupported formats
-
-3. 🔄 Transformation
-Extracts text from documents
-For images:
-Uses Rekognition + LLM captioning
-Stores processed text in S3
-
-4. 🧩 Chunking & Embedding
-Documents are split into chunks
-Embeddings generated using Bedrock models
-
-5. 📦 Storage
-Embeddings stored in OpenSearch index
-Metadata includes:
-Timestamp
-Model used
-
-----------------------------------------------------------------------------------------------------------------------------------------------
-
-📁 Project Structure
-.
-├── lambda/                  # Lambda functions (validation, transform, embedding)
-├── modules/                 # Terraform modules
-│   ├── document-ingestion
-│   ├── networking-resources
-│   ├── persistence-resources
-│   ├── question-answering
-│   └── summarization
-├── resources/              # GenAI related resources
-├── examples/               # Sample usage
-├── tests/                  # Test cases
-├── main.tf                 # Entry Terraform config
-├── variables.tf            # Input variables
-├── outputs.tf              # Outputs
-└── providers.tf            # AWS providers
-🛠️ Tech Stack
-AWS Services
-S3
-Lambda
-Step Functions
-OpenSearch
-Bedrock
-AppSync
-Cognito
-EventBridge
-Frameworks
+Tech Stack:
+AWS (S3, Lambda, Step Functions, OpenSearch, Bedrock, AppSync, Cognito)
 Terraform
-LangChain (for parsing/processing)
-📦 Prerequisites
-AWS Account
-Terraform ≥ 1.0
-AWS CLI configured
-Bedrock model access enabled
-OpenSearch cluster (or provisioned via Terraform)
+LangChain
 
-----------------------------------------------------------------------------------------------------------------------------------------------
+Prerequisites:
+- AWS Account
+- Terraform >= 1.0
+- AWS CLI configured
+- Bedrock access enabled
 
-🚀 Setup & Deployment
-1. Clone repo
-git clone https://github.com/snshari80/rag-aws-ingestion.git
-cd rag-aws-ingestion
-2. Initialize Terraform
-terraform init
-3. Configure variables
-Create terraform.tfvars:
-solution_prefix = "rag"
-region          = "us-east-1"
-4. Deploy
-terraform apply
-🔌 Usage
-Upload a file
+Setup:
+1. git clone https://github.com/snshari80/rag-aws-ingestion.git
+2. terraform init
+3. terraform apply
+
+Usage:
+Upload a file to S3 bucket:
 aws s3 cp sample.pdf s3://<input-bucket>/
-Trigger ingestion
-Automatically via pipeline
-Or via AppSync mutation (if enabled)
-📊 Outputs
 
-After deployment:
-
-S3 input bucket
-Processed S3 bucket
-GraphQL endpoint
-Cognito credentials
-OpenSearch index
-💰 Cost Considerations
-Major cost drivers:
-OpenSearch cluster
-Lambda execution
-Bedrock embeddings
-
-----------------------------------------------------------------------------------------------------------------------------------------------
-
-👉 AWS RAG pipelines can cost significantly at scale depending on usage
-
-🔐 Security
-IAM-based access control
-Cognito authentication for APIs
-VPC isolation (optional)
-Secrets managed via AWS Secrets Manager
-⚠️ Known Issues / Gotchas
-❌ Duplicate files are skipped
-❌ Unsupported formats will fail validation
-⚠️ OpenSearch connectivity issues → check VPC/IAM
-⚠️ Bedrock models must be explicitly enabled
-🧪 Troubleshooting
-Issue	Cause	Fix
-Cannot connect to OpenSearch	Network/IAM issue	Check VPC + permissions
-File not processed	Already exists	Delete from processed bucket
-Unsupported file	Wrong format	Upload valid type
-🧹 Cleanup
+Cleanup:
 terraform destroy
 
-----------------------------------------------------------------------------------------------------------------------------------------------
+Notes:
+- Unsupported formats will fail
+- OpenSearch requires proper IAM/VPC setup
+- Bedrock models must be enabled
 
-Then manually:
-
-Delete S3 buckets
-Clear OpenSearch index
-Remove CloudWatch logs
-🔮 Future Improvements
-Streaming ingestion
-Hybrid search (keyword + vector)
-Better chunking strategies
-Multi-tenant support
-LangGraph orchestration
-
-----------------------------------------------------------------------------------------------------------------------------------------------
-
-🤝 Contributing
-
-Hari Nagarajan S
-
-----------------------------------------------------------------------------------------------------------------------------------------------
-
-📜 License
-
+License:
 MIT
-
-----------------------------------------------------------------------------------------------------------------------------------------------
-
-🧠 Summary
-
-This repo gives you a production-grade RAG ingestion backbone on AWS:
-
-Fully serverless
-Scalable ingestion pipeline
-Ready for LLM apps
