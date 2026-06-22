@@ -1,275 +1,196 @@
-# RAG Ingestion Pipeline
+🧠 RAG AWS Ingestion Pipeline
 
-A production-ready AWS-powered data ingestion engine for semantic document processing and vector embedding. Streams documents from S3, extracts text from multiple formats, generates embeddings via AWS Bedrock, and indexes them in OpenSearch for retrieval-augmented generation (RAG) applications.
+A serverless Retrieval-Augmented Generation (RAG) ingestion pipeline built on AWS.
 
-## Features
+This project ingests documents (PDFs, images, etc.), transforms them into structured text, generates embeddings, and stores them in a vector database (OpenSearch) for downstream LLM applications.
 
-- 📄 **Multi-format support**: PDF, DOCX, HTML, PPTX document parsing
-- 🚀 **Streaming architecture**: Efficiently handles large files without memory spikes
-- 🔍 **Semantic indexing**: AWS Bedrock Titan embeddings (1536-dimensional vectors)
-- 🔄 **Change detection**: SHA-256 hashing prevents duplicate ingestion
-- 📦 **Scalable**: Built for ECS Fargate with SQS job distribution
-- 🏗️ **Production-ready**: Error handling, retry logic, cleanup for long-running tasks
-- 🔐 **Secure**: Environment-based configuration, no hardcoded credentials
+----------------------------------------------------------------------------------------------------------------------------------------------
 
-## Tech Stack
+🚀 Features
+📂 Document ingestion from S3
+🔄 Automated ETL pipeline (Extract → Transform → Embed)
+🧠 Embedding generation using Amazon Bedrock
+🔍 Vector storage using OpenSearch
+⚡ Serverless orchestration using Step Functions + Lambda
+🔐 Secure access with Cognito / IAM
+📡 Real-time ingestion status via AppSync (optional)
 
-- **Runtime**: Python 3.13
-- **Cloud**: AWS (S3, SQS, Bedrock, OpenSearch)
-- **Core Libraries**: boto3, LangChain, langchain-community
-- **Document Parsing**: docx2txt, PyPDF, python-pptx
-- **Vector DB**: OpenSearch
-- **Async**: aiohttp, asyncio
+----------------------------------------------------------------------------------------------------------------------------------------------
 
-## Architecture
+🏗️ Architecture Overview
+        Upload File
+             ↓
+        S3 (Input Bucket)
+             ↓
+     Step Functions Workflow
+             ↓
+   ┌───────────────┬────────────────┬────────────────┐
+   ↓               ↓                ↓
+Validation     Transformation     Embedding
+(Lambda)        (Lambda)          (Lambda)
+   ↓               ↓                ↓
+   └──────────→ Processed S3 ←─────┘
+                        ↓
+                 Chunk + Embed
+                        ↓
+                OpenSearch (Vector DB)
 
-```
-S3 Bucket
-    ↓
-SQS Queue (rag-ingestion-queue)
-    ↓
-ECS Fargate Task (sqs_worker.py)
-    ├─ Stream download from S3 → /tmp
-    ├─ SHA-256 hash (change detection)
-    ├─ Check OpenSearch for existing docs
-    ├─ Parse document (PDF/DOCX/HTML/PPTX)
-    ├─ Bedrock embeddings (1536-dim)
-    └─ Upsert into OpenSearch
-    ↓
-OpenSearch Vector Index
-```
+----------------------------------------------------------------------------------------------------------------------------------------------
 
-## Installation
+⚙️ How It Works
+1. 📥 Ingestion
+Files uploaded to S3 trigger the pipeline
+Supported formats:
+PDFs
+Images (JPG, PNG, SVG)
 
-### Prerequisites
-- Python 3.13+
-- AWS Account with:
-  - S3 bucket
-  - SQS queue (main + DLQ)
-  - OpenSearch domain
-  - Bedrock API access
+2. ✅ Validation
+Lambda validates file type & existence
+Rejects unsupported formats
 
-### Setup
+3. 🔄 Transformation
+Extracts text from documents
+For images:
+Uses Rekognition + LLM captioning
+Stores processed text in S3
 
-```bash
-# Clone repository
-git clone https://github.com/snshari80/rag-ingestion-pipeline.git
-cd rag-ingestion-pipeline
+4. 🧩 Chunking & Embedding
+Documents are split into chunks
+Embeddings generated using Bedrock models
 
-# Create virtual environment
-python -m venv venv
+5. 📦 Storage
+Embeddings stored in OpenSearch index
+Metadata includes:
+Timestamp
+Model used
 
-# Activate venv
-# On Windows:
-.\Scripts\Activate.ps1
-# On macOS/Linux:
-source venv/bin/activate
+----------------------------------------------------------------------------------------------------------------------------------------------
 
-# Install dependencies
-pip install -r requirements.txt
-```
+📁 Project Structure
+.
+├── lambda/                  # Lambda functions (validation, transform, embedding)
+├── modules/                 # Terraform modules
+│   ├── document-ingestion
+│   ├── networking-resources
+│   ├── persistence-resources
+│   ├── question-answering
+│   └── summarization
+├── resources/              # GenAI related resources
+├── examples/               # Sample usage
+├── tests/                  # Test cases
+├── main.tf                 # Entry Terraform config
+├── variables.tf            # Input variables
+├── outputs.tf              # Outputs
+└── providers.tf            # AWS providers
+🛠️ Tech Stack
+AWS Services
+S3
+Lambda
+Step Functions
+OpenSearch
+Bedrock
+AppSync
+Cognito
+EventBridge
+Frameworks
+Terraform
+LangChain (for parsing/processing)
+📦 Prerequisites
+AWS Account
+Terraform ≥ 1.0
+AWS CLI configured
+Bedrock model access enabled
+OpenSearch cluster (or provisioned via Terraform)
 
-## Configuration
+----------------------------------------------------------------------------------------------------------------------------------------------
 
-1. **Copy environment template**
-   ```bash
-   cp .env.example .env
-   ```
+🚀 Setup & Deployment
+1. Clone repo
+git clone https://github.com/snshari80/rag-aws-ingestion.git
+cd rag-aws-ingestion
+2. Initialize Terraform
+terraform init
+3. Configure variables
+Create terraform.tfvars:
+solution_prefix = "rag"
+region          = "us-east-1"
+4. Deploy
+terraform apply
+🔌 Usage
+Upload a file
+aws s3 cp sample.pdf s3://<input-bucket>/
+Trigger ingestion
+Automatically via pipeline
+Or via AppSync mutation (if enabled)
+📊 Outputs
 
-2. **Fill in your values in `.env`**
-   ```env
-   # AWS
-   AWS_REGION=us-east-1
-   S3_BUCKET_NAME=your-bucket-name
-   
-   # SQS
-   SQS_QUEUE_URL=https://sqs.region.amazonaws.com/account-id/queue-name
-   SQS_DLQ_URL=https://sqs.region.amazonaws.com/account-id/dlq-name
-   
-   # OpenSearch
-   OPENSEARCH_HOST=https://your-domain.region.es.amazonaws.com
-   OPENSEARCH_USERNAME=admin
-   OPENSEARCH_PASSWORD=your-password
-   
-   # Bedrock
-   BEDROCK_REGION=us-east-1
-   ```
+After deployment:
 
-3. **Ensure AWS credentials are configured**
-   ```bash
-   # Option 1: AWS CLI
-   aws configure
-   
-   # Option 2: Environment variables
-   export AWS_ACCESS_KEY_ID=your-key
-   export AWS_SECRET_ACCESS_KEY=your-secret
-   ```
+S3 input bucket
+Processed S3 bucket
+GraphQL endpoint
+Cognito credentials
+OpenSearch index
+💰 Cost Considerations
+Major cost drivers:
+OpenSearch cluster
+Lambda execution
+Bedrock embeddings
 
-## Usage
+----------------------------------------------------------------------------------------------------------------------------------------------
 
-### Running the Worker
+👉 AWS RAG pipelines can cost significantly at scale depending on usage
 
-```bash
-python sqs_worker.py
-```
+🔐 Security
+IAM-based access control
+Cognito authentication for APIs
+VPC isolation (optional)
+Secrets managed via AWS Secrets Manager
+⚠️ Known Issues / Gotchas
+❌ Duplicate files are skipped
+❌ Unsupported formats will fail validation
+⚠️ OpenSearch connectivity issues → check VPC/IAM
+⚠️ Bedrock models must be explicitly enabled
+🧪 Troubleshooting
+Issue	Cause	Fix
+Cannot connect to OpenSearch	Network/IAM issue	Check VPC + permissions
+File not processed	Already exists	Delete from processed bucket
+Unsupported file	Wrong format	Upload valid type
+🧹 Cleanup
+terraform destroy
 
-The worker continuously polls the SQS queue and processes documents.
+----------------------------------------------------------------------------------------------------------------------------------------------
 
-### Processing a Document Manually
+Then manually:
 
-```python
-from ingestion_pipeline import IngestionPipeline
+Delete S3 buckets
+Clear OpenSearch index
+Remove CloudWatch logs
+🔮 Future Improvements
+Streaming ingestion
+Hybrid search (keyword + vector)
+Better chunking strategies
+Multi-tenant support
+LangGraph orchestration
 
-pipeline = IngestionPipeline()
-result = pipeline.ingest(
-    bucket="my-bucket",
-    key="documents/annual_report.pdf"
-)
+----------------------------------------------------------------------------------------------------------------------------------------------
 
-print(result)
-# {
-#   "status": "success",
-#   "chunks_total": 245,
-#   "chunks_stored": 245,
-#   "document_hash": "abc123...",
-#   "file_size_mb": 15.32
-# }
-```
+🤝 Contributing
 
-### SQS Message Format
+Hari Nagarajan S
 
-Push this to SQS for processing:
+----------------------------------------------------------------------------------------------------------------------------------------------
 
-```json
-{
-  "bucket": "rag-documents-bucket",
-  "key": "documents/compliance_manual.pdf"
-}
-```
+📜 License
 
-## Project Structure
+MIT
 
-```
-rag-ingestion-pipeline/
-├── config.py                 # Configuration & environment setup
-├── document_parse.py         # Multi-format document parser
-├── embeddings.py             # AWS Bedrock embeddings integration
-├── opensearch.py             # OpenSearch client & vector operations
-├── ingestion_pipeline.py     # Core orchestration logic
-├── sqs_worker.py             # SQS polling & job processing
-├── sqs_setup.py              # SQS queue initialization script
-├── requirements.txt          # Python dependencies
-├── .env.example              # Environment configuration template
-├── .gitignore                # Git ignore rules
-├── notification.json         # SNS notification templates
-└── README.md                 # This file
-```
+----------------------------------------------------------------------------------------------------------------------------------------------
 
-## API Reference
+🧠 Summary
 
-### IngestionPipeline
+This repo gives you a production-grade RAG ingestion backbone on AWS:
 
-```python
-class IngestionPipeline:
-    def ingest(bucket: str, key: str) -> dict
-```
-
-**Returns:**
-```python
-{
-    "status": "success|failed|skipped",
-    "key": str,
-    "chunks_total": int,
-    "chunks_stored": int,
-    "document_hash": str,
-    "file_size_mb": float
-}
-```
-
-### Supported File Types
-
-- `.pdf` - Portable Document Format
-- `.docx` - Microsoft Word (2007+)
-- `.html`, `.htm` - HTML documents
-- `.pptx` - Microsoft PowerPoint (2007+)
-- `.ppt` - Microsoft PowerPoint (97-2003)
-
-## Logging
-
-The pipeline produces detailed logs:
-
-```
-[Pipeline] Starting ingestion — bucket=my-bucket, key=documents/report.pdf
-[Step 1] Streaming download from S3 → /tmp ...
-[Step 2] SHA-256: abc123def456...
-[Step 3] Checking OpenSearch for existing document...
-[Step 4] Parsing document (type=.pdf) ...
-[Step 5] Generating embeddings for 50 chunks ...
-[Step 6] Upserting 50 chunks into OpenSearch ...
-[Pipeline] Complete — {'status': 'success', ...}
-```
-
-## Error Handling
-
-The pipeline handles:
-- **Unsupported file types** → Skipped with warning
-- **S3 access errors** → Logged and raised
-- **OpenSearch connectivity** → Retries with backoff
-- **Bedrock rate limiting** → Exponential backoff
-- **Parsing failures** → Document skipped, error logged
-
-## Performance Notes
-
-- **Streaming**: Large files (>100 MB) are streamed to /tmp to avoid memory exhaustion
-- **Batch embeddings**: Multiple chunks sent to Bedrock in batches for efficiency
-- **Change detection**: SHA-256 hashing skips unchanged documents
-- **Cleanup**: /tmp files removed after processing (important for long-running ECS tasks)
-
-## Troubleshooting
-
-### SQS Queue Not Receiving Messages
-```bash
-python sqs_setup.py  # Recreate queues
-```
-
-### OpenSearch Connection Failed
-- Verify domain is public or accessible from ECS task
-- Check security group allows inbound on port 443
-- Confirm credentials in `.env`
-
-### Out of Memory During File Processing
-- Switch to larger ECS task (current: streaming enabled)
-- Reduce `SQS_BATCH_SIZE` in `.env`
-
-### Embedding Generation Timeout
-- Increase `MAX_RETRIES` in config.py
-- Check Bedrock quota in AWS Console
-
-## Contributing
-
-1. Fork the repository
-2. Create feature branch: `git checkout -b feature/your-feature`
-3. Commit changes: `git commit -m 'Add feature'`
-4. Push to branch: `git push origin feature/your-feature`
-5. Open Pull Request
-
-## License
-
-MIT License - see LICENSE file for details
-
-## Support
-
-For issues, questions, or contributions:
-- Open an issue on GitHub
-- Check existing documentation
-- Review AWS Bedrock & OpenSearch documentation
-
-## Author
-
-**Hari Nagarajan S**  
-GitHub: [@snshari80](https://github.com/snshari80)
-
----
-
-**Last Updated**: 2026-06-12  
-**Version**: 1.0.0
+Fully serverless
+Scalable ingestion pipeline
+Ready for LLM apps
