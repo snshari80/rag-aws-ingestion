@@ -67,7 +67,6 @@ class SQSWorker:
         return response.get("Messages", [])
  
     def _delete_message(self, receipt_handle:str):
-        """Delete message from SQS queue after processing."""
         try:
             self.sqs.delete_message(
                 QueueUrl=SQS_QUEUE_URL,
