@@ -1,0 +1,74 @@
+{
+  "family": "rag-ingestion-task",
+  "networkMode": "awsvpc",
+  "requiresCompatibilities": [
+    "FARGATE"
+  ],
+  "cpu": "1024",
+  "memory": "2048",
+  "executionRoleArn": "arn:aws:iam::${ACCOUNT_ID}:role/ecsTaskExecutionRole",
+  "taskRoleArn": "arn:aws:iam::${ACCOUNT_ID}:role/rag-ingestion-task-role",
+  "ephemeralStorage": {
+    "sizeInGiB": 50
+  },
+  "containerDefinitions": [
+    {
+      "name": "rag-ingestion-worker",
+      "image": "${IMAGE_URI}",
+      "essential": true,
+      "environment": [
+        {
+          "name": "USE_AWS_OPENSEARCH",
+          "value": "true"
+        },
+        {
+          "name": "WORKER_CONCURRENCY",
+          "value": "2"
+        },
+        {
+          "name": "BEDROCK_MODEL_ID",
+          "value": "amazon.titan-embed-text-v1"
+        }
+      ],
+      "secrets": [
+        {
+          "name": "OPENSEARCH_PASSWORD",
+          "valueFrom": "arn:aws:secretsmanager:${AWS_REGION}:${ACCOUNT_ID}:secret:rag-app/prod/secrets-dOxxm2:OPENSEARCH_PASSWORD::"
+        },
+        {
+          "name": "AWS_REGION",
+          "valueFrom": "arn:aws:secretsmanager:${AWS_REGION}:${ACCOUNT_ID}:secret:rag-app/prod/secrets-dOxxm2:AWS_REGION::"
+        },
+        {
+          "name": "S3_BUCKET_NAME",
+          "valueFrom": "arn:aws:secretsmanager:${AWS_REGION}:${ACCOUNT_ID}:secret:rag-app/prod/secrets-dOxxm2:S3_BUCKET_NAME::"
+        },
+        {
+          "name": "SQS_QUEUE_URL",
+          "valueFrom": "arn:aws:secretsmanager:${AWS_REGION}:${ACCOUNT_ID}:secret:rag-app/prod/secrets-dOxxm2:SQS_QUEUE_URL::"
+        },
+        {
+          "name": "OPENSEARCH_HOST",
+          "valueFrom": "arn:aws:secretsmanager:${AWS_REGION}:${ACCOUNT_ID}:secret:rag-app/prod/secrets-dOxxm2:OPENSEARCH_HOST::"
+        },
+        {
+          "name": "OPENSEARCH_INDEX_NAME",
+          "valueFrom": "arn:aws:secretsmanager:${AWS_REGION}:${ACCOUNT_ID}:secret:rag-app/prod/secrets-dOxxm2:OPENSEARCH_INDEX_NAME::"
+        },
+        {
+          "name": "OPENSEARCH_USERNAME",
+          "valueFrom": "arn:aws:secretsmanager:${AWS_REGION}:${ACCOUNT_ID}:secret:rag-app/prod/secrets-dOxxm2:OPENSEARCH_USERNAME::"
+        }
+      ],
+      "logConfiguration": {
+        "logDriver": "awslogs",
+        "options": {
+          "awslogs-group": "/ecs/rag-ingestion-worker",
+          "awslogs-region": "us-east-1",
+          "awslogs-stream-prefix": "ecs",
+          "awslogs-create-group": "true"
+        }
+      }
+    }
+  ]
+}
