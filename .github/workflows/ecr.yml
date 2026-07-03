@@ -1,4 +1,4 @@
-name: Build and Push to ECR
+name: Build and Push to ECR & ECS
 
 on:
   push:
@@ -13,6 +13,7 @@ env:
   AWS_REGION: ${{ secrets.AWS_REGION }}
   ECR_REPOSITORY: ${{ secrets.ECR_REPOSITORY }}
   ACCOUNT_ID: ${{ secrets.ACCOUNT_ID }}
+  ECS_CLUSTER: ${{ secrets.ECS_CLUSTER }}
 
 jobs:
   build:
@@ -44,3 +45,9 @@ jobs:
       - name: Push to ECR
         run: |
           docker push $ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPOSITORY:latest
+
+      - name: Ensure ECS Cluster exists
+        run: |
+          aws ecs describe-clusters --clusters $ECR_REPOSITORY \
+          --query "clusters[0].status" --output text | grep -q ACTIVE || \
+          aws ecs create-cluster --cluster-name $ECR_REPOSITORY
