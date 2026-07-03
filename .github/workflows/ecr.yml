@@ -32,6 +32,7 @@ jobs:
           aws-region: ${{ env.AWS_REGION }}
   
   Build_Push_To_ECR:
+    needs: Configure-AWS 
     runs-on: ubuntu-latest
     steps:
       - name: Ensure ECR repository exists
@@ -52,6 +53,7 @@ jobs:
           docker push $ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPOSITORY:latest
 
   Push_To_ECS:
+    needs: Build_Push_To_ECR 
     runs-on: ubuntu-latest
     steps:
       - name: Ensure ECS Cluster exists
