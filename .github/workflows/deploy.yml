@@ -98,10 +98,12 @@ jobs:
           --query "taskDefinition.taskDefinitionArn" \
           --output text)
 
-          echo $TASK_DEF_ARN
+          echo $TASK_DEF_ARN >> $GITHUB_ENV
 
       - name: Update ECS Service
         run: |
+          echo "Using $TASK_DEF_ARN"
+          
           aws ecs update-service \
             --cluster ${ECS_CLUSTER} \
             --service ${ECS_SERVICE} \
