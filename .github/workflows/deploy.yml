@@ -14,6 +14,7 @@ env:
   ECR_REPOSITORY: ${{ secrets.ECR_REPOSITORY }}
   ACCOUNT_ID: ${{ secrets.ACCOUNT_ID }}
   ECS_CLUSTER: ${{ secrets.ECS_CLUSTER }}
+  ECS_SERVICE: ${{ secrets.ECS_SERVICE }}
 
 jobs:
   setup:
@@ -89,14 +90,18 @@ jobs:
           sed -i "s|\${AWS_REGION}|$AWS_REGION|g" task-definition.json
           sed -i "s|\${IMAGE_URI}|$IMAGE_URI|g" task-definition.json
 
-      - name: Register Task Definition
-        run: |
-          aws ecs register-task-definition \
-            --cli-input-json file://task-definition.json
+      - name: Register Task Definition 
+        id: register-task 
+        run: | 
+          TASK_DEF_ARN=$(aws ecs register-task-definition \ 
+          --cli-input-json file://task-definition.json \ 
+          --query "taskDefinition.taskDefinitionArn" \ 
+          --output text) echo "TASK_DEF_ARN=$TASK_DEF_ARN" >> $GITHUB_ENV
 
       - name: Update ECS Service
         run: |
           aws ecs update-service \
-            --cluster rag-pipeline-cluster \
-            --service rag-ingestion-service \
+            --cluster ${ECS_CLUSTER} \
+            --service ${ECS_SERVICE} \
+            --task-definition $TASK_DEF_ARN \
             --force-new-deployment
