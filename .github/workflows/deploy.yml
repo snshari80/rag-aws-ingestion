@@ -97,6 +97,6 @@ jobs:
       - name: Update ECS Service
         run: |
           aws ecs update-service \
-            --cluster $ECS_CLUSTER \
+            --cluster rag-pipeline-cluster \
             --service rag-ingestion-service \
             --force-new-deployment
