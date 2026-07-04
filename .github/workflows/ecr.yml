@@ -47,6 +47,15 @@ jobs:
           docker push $ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPOSITORY:latest
       - name: Ensure ECS Cluster exists
         run: |
-          aws ecs describe-clusters --clusters $ECR_REPOSITORY \
+          aws ecs describe-clusters --clusters $ECS_CLUSTER \
           --query "clusters[0].status" --output text | grep -q ACTIVE || \
-          aws ecs create-cluster --cluster-name $ECR_REPOSITORY
+          aws ecs create-cluster --cluster-name $ECS_CLUSTER
+      - name: Replace placeholders in task definition
+        run: |
+          IMAGE_URI=$ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPOSITORY:latest
+
+          sed -i "s|\${ACCOUNT_ID}|$ACCOUNT_ID|g" task-definition.json
+          sed -i "s|\${AWS_REGION}|$AWS_REGION|g" task-definition.json
+          sed -i "s|\${IMAGE_URI}|$IMAGE_URI|g" task-definition.json
+      - name: Show updated task definition
+        run: cat task-definition.json
