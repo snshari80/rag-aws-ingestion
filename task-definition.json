@@ -28,6 +28,10 @@
         {
           "name": "BEDROCK_MODEL_ID",
           "value": "amazon.titan-embed-text-v1"
+        },
+        {
+          "name": "BEDROCK_EMBEDDING_MODEL_ID",
+          "value": "amazon.titan-embed-text-v2:0"
         }
       ],
       "secrets": [
