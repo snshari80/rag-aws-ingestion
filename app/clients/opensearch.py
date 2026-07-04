@@ -221,7 +221,7 @@ class OpenSearchVectorClient:
             print(f"Unique Documents")
             print(f"Total available Documents: {len(buckets)}")
             for b in buckets:
-                print(f"\n{b["key"]}")
+                print(f"\n{b['key']}")
             print(f"\n{'-'*60}")
            
 
