@@ -1,0 +1,102 @@
+name: Build and Push to ECR & ECS
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  id-token: write
+  contents: read
+
+env:
+  AWS_REGION: ${{ secrets.AWS_REGION }}
+  ECR_REPOSITORY: ${{ secrets.ECR_REPOSITORY }}
+  ACCOUNT_ID: ${{ secrets.ACCOUNT_ID }}
+  ECS_CLUSTER: ${{ secrets.ECS_CLUSTER }}
+
+jobs:
+  setup:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Ensure ECR repository exists
+        run: |
+          aws ecr describe-repositories --repository-names $ECR_REPOSITORY --region $AWS_REGION \
+          || aws ecr create-repository --repository-name $ECR_REPOSITORY --region $AWS_REGION
+
+      - name: Ensure ECS Cluster exists
+        run: |
+          aws ecs describe-clusters --clusters $ECS_CLUSTER \
+          --query "clusters[0].status" --output text | grep -q ACTIVE || \
+          aws ecs create-cluster --cluster-name $ECS_CLUSTER
+
+  build_push:
+    runs-on: ubuntu-latest
+    needs: setup
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login to ECR
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build Docker image
+        run: docker build -t $ECR_REPOSITORY .
+
+      - name: Tag image
+        run: |
+          docker tag $ECR_REPOSITORY:latest \
+          $ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPOSITORY:latest
+
+      - name: Push to ECR
+        run: |
+          docker push \
+          $ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPOSITORY:latest
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: build_push
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Replace placeholders in task definition
+        run: |
+          IMAGE_URI=$ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPOSITORY:latest
+
+          sed -i "s|\${ACCOUNT_ID}|$ACCOUNT_ID|g" task-definition.json
+          sed -i "s|\${AWS_REGION}|$AWS_REGION|g" task-definition.json
+          sed -i "s|\${IMAGE_URI}|$IMAGE_URI|g" task-definition.json
+
+      - name: Register Task Definition
+        run: |
+          aws ecs register-task-definition \
+            --cli-input-json file://task-definition.json
+
+      - name: Update ECS Service
+        run: |
+          aws ecs update-service \
+            --cluster $ECS_CLUSTER \
+            --service YOUR_SERVICE_NAME \
+            --force-new-deployment
