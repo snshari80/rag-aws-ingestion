@@ -93,10 +93,12 @@ jobs:
       - name: Register Task Definition 
         id: register-task 
         run: | 
-          TASK_DEF_ARN=$(aws ecs register-task-definition \ 
-          --cli-input-json file://task-definition.json \ 
-          --query "taskDefinition.taskDefinitionArn" \ 
-          --output text) echo "TASK_DEF_ARN=$TASK_DEF_ARN" >> $GITHUB_ENV
+          TASK_DEF_ARN=$(aws ecs register-task-definition \
+          --cli-input-json file://task-definition.json \
+          --query "taskDefinition.taskDefinitionArn" \
+          --output text)
+
+          echo $TASK_DEF_ARN
 
       - name: Update ECS Service
         run: |
