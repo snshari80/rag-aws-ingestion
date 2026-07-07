@@ -15,6 +15,7 @@ env:
   ACCOUNT_ID: ${{ secrets.ACCOUNT_ID }}
   ECS_CLUSTER: ${{ secrets.ECS_CLUSTER }}
   ECS_SERVICE: ${{ secrets.ECS_SERVICE }}
+  RAG_APP_SECRET: ${{ secrets.RAG_APP_SECRET }}
 
 jobs:
   setup:
@@ -89,6 +90,7 @@ jobs:
           sed -i "s|\${ACCOUNT_ID}|$ACCOUNT_ID|g" task-definition.json
           sed -i "s|\${AWS_REGION}|$AWS_REGION|g" task-definition.json
           sed -i "s|\${IMAGE_URI}|$IMAGE_URI|g" task-definition.json
+          sed -i "s|\${RAG_APP_SECRET}|$RAG_APP_SECRET|g" task-definition.json
 
       - name: Deploy ECS
         run: |
