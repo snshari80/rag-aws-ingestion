@@ -37,31 +37,31 @@
       "secrets": [
         {
           "name": "OPENSEARCH_PASSWORD",
-          "valueFrom": "arn:aws:secretsmanager:${AWS_REGION}:${ACCOUNT_ID}:secret:rag-app/prod/secrets-dOxxm2:OPENSEARCH_PASSWORD::"
+          "valueFrom": "arn:aws:secretsmanager:${AWS_REGION}:${ACCOUNT_ID}:secret:${RAG_APP_SECRET}:OPENSEARCH_PASSWORD::"
         },
         {
           "name": "AWS_REGION",
-          "valueFrom": "arn:aws:secretsmanager:${AWS_REGION}:${ACCOUNT_ID}:secret:rag-app/prod/secrets-dOxxm2:AWS_REGION::"
+          "valueFrom": "arn:aws:secretsmanager:${AWS_REGION}:${ACCOUNT_ID}:secret:${RAG_APP_SECRET}:AWS_REGION::"
         },
         {
           "name": "S3_BUCKET_NAME",
-          "valueFrom": "arn:aws:secretsmanager:${AWS_REGION}:${ACCOUNT_ID}:secret:rag-app/prod/secrets-dOxxm2:S3_BUCKET_NAME::"
+          "valueFrom": "arn:aws:secretsmanager:${AWS_REGION}:${ACCOUNT_ID}:secret:${RAG_APP_SECRET}:S3_BUCKET_NAME::"
         },
         {
           "name": "SQS_QUEUE_URL",
-          "valueFrom": "arn:aws:secretsmanager:${AWS_REGION}:${ACCOUNT_ID}:secret:rag-app/prod/secrets-dOxxm2:SQS_QUEUE_URL::"
+          "valueFrom": "arn:aws:secretsmanager:${AWS_REGION}:${ACCOUNT_ID}:secret:${RAG_APP_SECRET}:SQS_QUEUE_URL::"
         },
         {
           "name": "OPENSEARCH_HOST",
-          "valueFrom": "arn:aws:secretsmanager:${AWS_REGION}:${ACCOUNT_ID}:secret:rag-app/prod/secrets-dOxxm2:OPENSEARCH_HOST::"
+          "valueFrom": "arn:aws:secretsmanager:${AWS_REGION}:${ACCOUNT_ID}:secret:${RAG_APP_SECRET}:OPENSEARCH_HOST::"
         },
         {
           "name": "OPENSEARCH_INDEX_NAME",
-          "valueFrom": "arn:aws:secretsmanager:${AWS_REGION}:${ACCOUNT_ID}:secret:rag-app/prod/secrets-dOxxm2:OPENSEARCH_INDEX_NAME::"
+          "valueFrom": "arn:aws:secretsmanager:${AWS_REGION}:${ACCOUNT_ID}:secret:${RAG_APP_SECRET}:OPENSEARCH_INDEX_NAME::"
         },
         {
           "name": "OPENSEARCH_USERNAME",
-          "valueFrom": "arn:aws:secretsmanager:${AWS_REGION}:${ACCOUNT_ID}:secret:rag-app/prod/secrets-dOxxm2:OPENSEARCH_USERNAME::"
+          "valueFrom": "arn:aws:secretsmanager:${AWS_REGION}:${ACCOUNT_ID}:secret:${RAG_APP_SECRET}:OPENSEARCH_USERNAME::"
         }
       ],
       "logConfiguration": {
