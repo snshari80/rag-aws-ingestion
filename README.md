@@ -70,7 +70,7 @@ This repository implements the ingestion side of a RAG pipeline:
    ```
    If you do not have an example file yet, add the required variables manually. At minimum, configure:
    ```env
-   AWS_REGION=us-east-1
+   AWS_REGION=your-aws-region
    S3_BUCKET_NAME=your-bucket
    SQS_QUEUE_URL=your-queue-url
    SQS_DLQ_URL=your-dlq-url
