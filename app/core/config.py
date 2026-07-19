@@ -10,7 +10,6 @@ elif Path(".env").exists():
 # AWS Configuration
 AWS_REGION = os.getenv("AWS_REGION")
 S3_BUCKET_NAME = os.getenv("S3_BUCKET_NAME")
-S3_PREFIX_FILTER = os.getenv("S3_PREFIX_FILTER")
 
 # SQS Configuration
 MAIN_QUEUE_NAME = "rag-ingestion-queue"
@@ -33,8 +32,6 @@ USE_AWS_OPENSEARCH = os.getenv("USE_AWS_OPENSEARCH", "False").lower() == "true"
 BEDROCK_REGION = os.getenv("BEDROCK_REGION")
 BEDROCK_EMBEDDING_MODEL_ID = os.getenv("BEDROCK_EMBEDDING_MODEL_ID")
 EMBEDDING_DIMENSIONS = 1024
-BEDROCK_LLM_MODEL_ID = os.getenv("BEDROCK_LLM_MODEL_ID")
-BEDROCK_AWS_PROFILE = os.getenv("BEDROCK_AWS_PROFILE")
 
 # Worker Configuration
 WORKER_CONCURRENCY = int(os.getenv("WORKER_CONCURRENCY", "1"))
